@@ -23,7 +23,7 @@ var dynamodbTableSchema = {
 
 // Require in all tests in the modules directory
 var tests = fs.readdirSync(path.join(__dirname,'modules'))
-  .filter(filename => filename.indexOf('.swp') === -1)
+  .filter(function(filename) { return filename.indexOf('.swp') === -1; })
   .map(function(filename) {
     return require(path.join(__dirname,'modules',filename));
   });
