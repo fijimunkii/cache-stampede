@@ -55,6 +55,11 @@ const formatUpdate = d => {
   };
 };
 
+const checkUndefined = err => {
+  if (err === undefined) throw 'UNDEFINED_ERROR';
+  throw err;
+}
+
 const Promise = require('bluebird');
 
 module.exports = function(client,prefix) {  
@@ -70,7 +75,8 @@ module.exports = function(client,prefix) {
         }
       };
       return client.getAsync(query)
-        .then(d => deSerialize(d.Item));
+        .then(d => deSerialize(d.Item))
+        .catch(checkUndefined);
     },
 
     insert : function(key,d) {
@@ -87,7 +93,8 @@ module.exports = function(client,prefix) {
             throw new Error('KEY_EXISTS');
           else
             throw err;
-        });
+        })
+        .catch(checkUndefined);
     },
 
     update : function(key,d) {
@@ -100,7 +107,8 @@ module.exports = function(client,prefix) {
         UpdateExpression: d.UpdateExpression,
         ExpressionAttributeValues: d.ExpressionAttributeValues
       };
-      return client.updateAsync(query);
+      return client.updateAsync(query)
+        .catch(checkUndefined);
     },
 
     remove : function(key) {
@@ -110,7 +118,8 @@ module.exports = function(client,prefix) {
           "id": key,
         },
       };
-      return client.deleteAsync(query);
+      return client.deleteAsync(query)
+        .catch(checkUndefined);
     }
   };
 };
