@@ -1,3 +1,34 @@
+const serialize = d => {
+  let data = {
+    id: d.key,
+    cs_data: d.data,
+    cs_info: d.info,
+    cs_caching: Number(d.__caching__),
+    cs_updated: d.updated.toISOString(),
+    cs_encrypted: d.encrypted || false,
+    cs_compressed: d.compressed || false,
+    cs_error: d.error || false,
+    cs_expiryTime: d.expiryTime
+  };
+  return data;
+};
+
+const deSerialize = d => {
+  if (!d) return;
+  let data = {
+    key: d.id,
+    data: d.cs_data,
+    info: d.cs_info,
+    __caching__: Boolean(d.cs_caching),
+    updated: new Date(d.cs_updated),
+    encrypted: d.cs_encrypted,
+    compressed: d.cs_compressed,
+    error: d.cs_error,
+    expiryTime: d.cs_expiryTime
+  };
+  return data;
+};
+
 const Promise = require('bluebird');
 
 module.exports = function(client,prefix) {  
@@ -7,22 +38,15 @@ module.exports = function(client,prefix) {
     get : function(key,options) {
       var query = client.key([prefix,key]);
       return client.get(query)
-        .then(d => {
-          let data = d && d[0] && d[0].d && JSON.parse(d[0].d);
-          if (data && (data.base64 || (data.compressed && typeof data.data === 'string')))
-            data.data = new Buffer(data.data,'base64');
-          return data;
-        });
+        .then(d => deSerialize(d && d[0] && d[0].d));
     },
 
     insert : function(key,d) {
-      if (d && d.data instanceof Buffer) {
-        d.data = d.data.toString('base64');
-        d.base64 = true;
-      }
+      d.key = key;
+      d = serialize(d);
       var query = {
         key: client.key([prefix,key]),
-        data: { d: JSON.stringify(d) }
+        data: { d: d }
       };
       const transaction = client.transaction();
       return transaction.run()
@@ -40,13 +64,11 @@ module.exports = function(client,prefix) {
     },
 
     update : function(key,d) {
-      if (d && d.data instanceof Buffer) {
-        d.data = d.data.toString('base64');
-        d.base64 = true;
-      }
+      d.key = key;
+      d = serialize(d);
       var query = {
         key: client.key([prefix,key]),
-        data: { d: JSON.stringify(d) }
+        data: { d: d }
       };
       return client.update(query);
     },
