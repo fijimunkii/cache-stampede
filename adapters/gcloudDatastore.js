@@ -1,31 +1,15 @@
 const serialize = d => {
-  let data = {
-    id: d.key,
-    cs_data: d.data,
-    cs_info: d.info,
-    cs_caching: d.__caching__,
-    cs_updated: d.updated,
-    cs_encrypted: d.encrypted || false,
-    cs_compressed: d.compressed || false,
-    cs_error: d.error || false,
-    cs_expiryTime: d.expiryTime
-  };
+  const data = Object.assign({}, d);
+  data.caching = data.__caching__;
+  delete data.__caching__;
   return data;
 };
 
 const deSerialize = d => {
   if (!d) return;
-  let data = {
-    key: d.id,
-    data: d.cs_data,
-    info: d.cs_info,
-    __caching__: d.cs_caching,
-    updated: d.cs_updated,
-    encrypted: d.cs_encrypted,
-    compressed: d.cs_compressed,
-    error: d.cs_error,
-    expiryTime: d.cs_expiryTime
-  };
+  const data = Object.assign({}, d);
+  data.__caching__ = data.caching;
+  delete data.caching;
   return data;
 };
 
